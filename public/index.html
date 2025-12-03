@@ -1,105 +1,122 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Splunk LP</title>
-  <link rel="stylesheet" href="/assets/css/remixicon.css">
-  <link rel="stylesheet" href="/assets/css/lib/bootstrap.min.css">
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <style>
-    :root{--accent:#00ffff;--accent2:#ff00ff;--bg:#0d0b1f}
-    body{background:var(--bg);color:#fff;font-family:system-ui;overflow:hidden}
-    #particles-js{position:fixed;inset:0;z-index:-1}
-    .sidebar{position:fixed;left:0;top:0;width:280px;height:100%;background:#11101d;border-right:2px solid var(--accent);padding-top:2rem;z-index:10}
-    .logo{font-size:2.2rem;color:var(--accent);text-align:center;margin-bottom:3rem;text-shadow:0 0 20px var(--accent)}
-    .sidebar-menu a{color:#ccc;padding:14px 30px;display:flex;align-items:center;gap:12px;transition:.3s}
-    .sidebar-menu a:hover,.sidebar-menu a.active{background:rgba(0,255,255,0.15);color:var(--accent);border-left:4px solid var(--accent)}
-    .dashboard-main{margin-left:280px;padding:2rem;min-height:100vh}
-    .card{border:1px solid var(--accent);background:#11101d;box-shadow:0 0 20px rgba(0,255,255,0.3);border-radius:12px}
-    .glow-hover{box-shadow:0 0 30px rgba(0,255,255,0.4)!important;transition:.3s}
-    .glow-hover:hover{box-shadow:0 0 50px rgba(0,255,255,0.7)!important;transform:translateY(-5px)}
-    #loginOverlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
-    #loginOverlay h1{font-size:4.5rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    #loginOverlay button{background:linear-gradient(45deg,var(--accent),var(--accent2));color:#000;padding:1rem 3rem;border:none;border-radius:50px;font-size:1.6rem;cursor:pointer;box-shadow:0 0 40px var(--accent)}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pages | Dashboard</title>
+<link rel="icon" type="image/png" href="/assets/images/favicon.png" sizes="16x16">
+<link rel="stylesheet" href="/assets/css/remixicon.css">
+<link rel="stylesheet" href="/assets/css/lib/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/css/lib/apexcharts.css">
+<link rel="stylesheet" href="/assets/css/lib/dataTables.min.css">
+<link rel="stylesheet" href="/assets/css/lib/editor-katex.min.css">
+<link rel="stylesheet" href="/assets/css/lib/editor.atom-one-dark.min.css">
+<link rel="stylesheet" href="/assets/css/lib/editor.quill.snow.css">
+<link rel="stylesheet" href="/assets/css/lib/flatpickr.min.css">
+<link rel="stylesheet" href="/assets/css/lib/full-calendar.css">
+<link rel="stylesheet" href="/assets/css/lib/jquery-jvectormap-2.0.5.css">
+<link rel="stylesheet" href="/assets/css/lib/magnific-popup.css">
+<link rel="stylesheet" href="/assets/css/lib/slick.css">
+<link rel="stylesheet" href="/assets/css/lib/prism.css">
+<link rel="stylesheet" href="/assets/css/lib/file-upload.css">
+<link rel="stylesheet" href="/assets/css/lib/audioplayer.css">
+<link rel="stylesheet" href="/assets/css/self.css">
+<link rel="stylesheet" href="/assets/css/style.css">
+
+<style>
+  :root{--accent:#00ffff;--accent2:#ff00ff;--bg:#0a001a}
+  body{background:var(--bg);color:#fff;overflow:hidden}
+  #particles-js{position:fixed;inset:0;z-index:-1}
+  #loginOverlay{
+    position:fixed;inset:0;background:var(--bg);z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(10px);
+  }
+  #loginOverlay h1{
+    font-size:5rem;font-weight:900;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  #loginOverlay button{
+    background:linear-gradient(45deg,var(--accent),var(--accent2));
+    color:#000;padding:1.2rem 4rem;border:none;border-radius:50px;
+    font-size:1.8rem;font-weight:bold;cursor:pointer;
+    box-shadow:0 0 50px var(--accent);margin-top:2rem;
+  }
+</style>
 </head>
 <body>
 
 <div id="particles-js"></div>
 
 <!-- TELA DE LOGIN (some depois do primeiro acesso) -->
-<div id="loginOverlay" style="display:flex">
+<div id="loginOverlay">
   <div class="text-center">
     <h1>SPLUNK LP</h1>
-    <p style="color:var(--accent);font-size:1.8rem;margin:2rem 0">Acesso Exclusivo</p>
+    <p style="color:var(--accent);font-size:2rem;margin:2rem 0">Acesso Exclusivo</p>
     <button onclick="location.href='https://discord.com/oauth2/authorize?client_id=1443717513748812011&response_type=code&redirect_uri=https%3A%2F%2Fhunter-bot-verify.onrender.com%2Fkey&scope=identify%20guilds.join'">
       VERIFICAR ACESSO
     </button>
   </div>
 </div>
 
-<!-- SIDEBAR (igualzinha a sua) -->
+<!-- SEU PAINEL ANTIGO COMPLETO (exatamente como você mandou na primeira mensagem) -->
 <aside class="sidebar">
-  <div class="logo">SPLUNK LP</div>
-  <ul class="sidebar-menu">
-    <li><a href="#" class="active" onclick="show('dashboard')">Dashboard</a></li>
-    <li><a href="#" onclick="show('hits')">Hits</a></li>
-    <li><a href="#" onclick="show('settings')">Settings</a></li>
-    <li><a href="#" onclick="show('bypasser')">Bypasser</a></li>
-  </ul>
+  <button type="button" class="sidebar-close-btn"><iconify-icon icon="radix-icons:cross-2"></iconify-icon></button>
+  <div class="sidebar-menu-area">
+    <ul class="sidebar-menu" id="sidebar-menu">
+      <li><a href="#" class="active-page" onclick="showPage('dashboard')"><iconify-icon icon="solar:home-smile-angle-outline" class="menu-icon"></iconify-icon><span>Dashboard</span></a></li>
+      <li><a href="#" onclick="showPage('hits')"><iconify-icon icon="flowbite:user-outline" class="menu-icon"></iconify-icon><span>Hits <span class="notification-alert">0</span></span></a></li>
+      <li><a href="#" onclick="showPage('settings')"><iconify-icon icon="icon-park-outline:setting-two" class="menu-icon"></iconify-icon><span>Settings</span></a></li>
+      <li><a href="#" onclick="showPage('bypasser')"><iconify-icon icon="solar:shield-star-broken" class="menu-icon"></iconify-icon><span>Bypasser</span></a></li>
+    </ul>
+  </div>
 </aside>
 
-<!-- CONTEÚDO (cole aqui exatamente o seu HTML antigo) -->
-<main class="dashboard-main" id="content">
-  <!-- COLE AQUI TODO O SEU HTML DA PÁGINA 1 (Dashboard) -->
-  <!-- depois faça o mesmo nas variáveis JS abaixo -->
+<main class="dashboard-main">
+  <!-- AQUI VAI O CONTEÚDO DAS SUAS 4 PÁGINAS (dashboard, hits, settings, bypasser) -->
+  <div id="pageContent">
+    <!-- Dashboard será carregado aqui por padrão -->
+  </div>
 </main>
 
+<!-- SUAS 4 PÁGINAS COMPLETAS (cole exatamente o conteúdo que você já tem) -->
+<script>
+// COLE AQUI DENTRO AS SUAS 4 PÁGINAS COMPLETAS (sem o <head> e <body>)
+
+const pages = {
+  dashboard: `
+    `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 1 (Dashboard) que você mandou no início do chat -->`,
+  hits:           `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 2 (Hits) -->`,
+  settings:           `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 3 (Settings) -->`,
+  bypasser:      `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 4 (Bypasser) -->`
+};
+
+function showPage(page){
+  document.querySelectorAll('#sidebar-menu a').forEach(a=>a.classList.remove('active-page'));
+  event.target.classList.add('active-page');
+  document.getElementById('pageContent').innerHTML = pages[page];
+  if(page==='dashboard') loadDashboardScripts(); // se precisar recarregar WebSocket etc.
+}
+
+showPage('dashboard');
+
+// Remove tela de login se já estiver logado
+if(document.cookie.includes('connect.sid')){
+  document.getElementById('loginOverlay').remove();
+}
+</script>
+
+<!-- SEUS SCRIPTS ANTIGOS (particles, core.js, app.js, etc.) -->
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 <script src="/assets/js/core.js"></script>
 <script src="/assets/js/app.js"></script>
+<script src="/assets/js/particles.js"></script>
+<script src="/assets/js/overview-charts.js"></script>
+
 <script>
-particlesJS("particles-js", {particles:{number:{value:90},color:{value:"#00ffff"},line_linked:{color:"#00ffff",opacity:0.3},move:{speed:2}},interactivity:{events:{onhover:{enable:true,mode:"repulse"}}}});
-
-// PÁGINAS — cole exatamente o conteúdo das suas 4 páginas antigas aqui
-const pages = {
-  dashboard: `<!-- COLE AQUI TODO O HTML DA SUA PÁGINA DASHBOARD ANTIGA (a partir de <main class="dashboard-main"> até </main>) -->`,
-  hits:      `<!-- COLE AQUI TODO O HTML DA PÁGINA HITS -->`,
-  settings:  `<!-- COLE AQUI TODO O HTML DA PÁGINA SETTINGS -->`,
-  bypasser:  `<!-- COLE AQUI TODO O HTML DA PÁGINA BYPASSER -->`
-};
-
-function show(page){
-  document.querySelectorAll('.sidebar-menu a').forEach(a=>a.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('content').innerHTML = pages[page];
-}
-
-// Remove tela de login se já estiver logado
-if(document.cookie.includes('connect.sid')) document.getElementById('loginOverlay').style.display='none';
-show('dashboard');
+particlesJS("particles-js", {"particles":{"number":{"value":90},"color":{"value":"#00ffff"},"line_linked":{"color":"#00ffff","opacity":0.3},"move":{"speed":2}},"interactivity":{"events":{"onhover":{"enable":true,"mode":"repulse"}}}});
 </script>
+
 </body>
 </html>
-<!-- ... seu HTML antigo ... -->
-
-<div id="loginOverlay">
-  <div class="text-center">
-    <h1 style="font-size:4rem;background:linear-gradient(90deg,#00ffff,#ff00ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">
-      SPLUNK LP
-    </h1>
-    <p style="color:#00ffff;font-size:1.6rem;margin:2rem 0">Acesso Exclusivo</p>
-    <button onclick="location.href='https://discord.com/oauth2/authorize?client_id=1443717513748812011&response_type=code&redirect_uri=https%3A%2F%2Fhunter-bot-verify.onrender.com%2Fkey&scope=identify%20guilds.join'"
-       style="background:linear-gradient(45deg,#00ffff,#ff00ff);color:#000;padding:1rem 3rem;border:none;border-radius:50px;font-size:1.6rem;cursor:pointer">
-      VERIFICAR ACESSO
-    </button>
-  </div>
-</div>
-
-<script>
-  // Remove a tela de login imediatamente se já tiver sessão
-  if (document.cookie.includes('connect.sid')) {
-    document.getElementById('loginOverlay').remove();
-  }
-</script>
