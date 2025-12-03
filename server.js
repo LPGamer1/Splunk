@@ -10,101 +10,116 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // MongoDB
-mongoose.connect(process.env.MONGODB_URI);
-const User = mongoose.model('User', new mongoose.Schema({
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true});
+console.log('MongoDB conectado');
+
+// Modelo para IP confiável
+const TrustedIP = mongoose.model('TrustedIP', new mongoose.Schema({
+  ip: { type: String, unique: true },
   discordId: String,
   username: String,
-  avatar: String,
-  accessToken: String,
-  createdAt: { type: Date, default: Date.now }
+  lastSeen: { type: Date, default: Date.now }
 }));
 
-// Session
+// Session (1 ano de validade)
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'splunk_lp_never_login_again_2025',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 dias
+  cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 }
 }));
 
 app.use(express.static('public'));
-app.use(express.json());
 
-// Página inicial - se já logado vai direto pro dashboard
-app.get('/', (req, res) => {
-  if (req.session.user) {
-    return res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+// Pegar IP real (Render + Cloudflare)
+function getClientIP(req) {
+  return req.headers['cf-connecting-ip'] ||
+         req.headers['x-forwarded-for']?.split(',')[0] ||
+         req.ip ||
+         req.socket.remoteAddress;
+}
+
+// TELA INICIAL
+app.get('/', async (req, res) => {
+  const ip = getClientIP(req);
+
+  // Se o IP já for confiável → entra direto
+  const trusted = await TrustedIP.findOne({ ip });
+  if (trusted) {
+    req.session.user = {
+      id: trusted.discordId,
+      username: trusted.username,
+      trusted: true
+    };
+    return res.redirect('/dashboard');
   }
+
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Rota que inicia o fluxo de verificação
-app.get('/getkey', (req, res) => {
-  const redirectUrl = `https://hunter-bot-verify.onrender.com/key?redirect=https://${req.get('host')}/sucess`;
-  res.redirect(redirectUrl);
-});
-
-// Rota que recebe o token do Hunter Bot
+// ROTA FINAL – recebe do Hunter Bot
 app.get('/sucess', async (req, res) => {
-  const { token } = req.query;
+  const { token, ip: providedIP } = req.query;
 
   if (!token) {
-    return res.send('<h1 style="color:red; text-align:center; margin-top:20vh;">Erro: Token não recebido!</h1>');
+    return res.send('<h1 style="color:red;text-align:center;margin-top:20vh;">Erro: Token não recebido do Hunter Bot</h1>'));
   }
 
   try {
-    // Usa o token do Hunter Bot para pegar os dados do usuário no Discord
-    const userResponse = await axios.get('https://discord.com/api/users/@me', {
+    // Pega dados do usuário com o token
+    const { data: user } = await axios.get('https://discord.com/api/users/@me', {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    const user = userResponse.data;
+    // Usa o IP que o Hunter Bot mandou (mais confiável)
+    const realIP = providedIP || getClientIP(req);
 
-    // Salva/atualiza usuário no banco
-    await User.findOneAndUpdate(
-      { discordId: user.id },
+    // Salva IP como confiável permanentemente
+    await TrustedIP.findOneAndUpdate(
+      { ip: realIP },
       {
+        ip: realIP,
         discordId: user.id,
-        username: user.global_name || user.username,
-        avatar: user.avatar
+        username: user.global_name || user.username
       },
       { upsert: true }
     );
 
-    // Loga o usuário na sessão
+    // Loga o usuário
     req.session.user = {
       id: user.id,
-      username: user.global_name || user.username + '#' + user.discriminator,
-      avatar: user.avatar ? `https://cdn.discordapp.com/avatars/\( {user.id}/ \){user.avatar}.png` : null
+      username: user.global_name || user.username,
+      avatar: user.avatar ? `https://cdn.discordapp.com/avatars/\( {user.id}/ \){user.avatar}.png` : null,
+      trusted: true
     };
 
-    // Redireciona pro dashboard com visual cyberpunk
-    res.sendFile(path.join(__dirname, 'views', 'sucess.html'));
+    res.redirect('/dashboard');
   } catch (err) {
-    console.error("Erro ao validar token:", err.response?.data || err.message);
+    console.error(err.response?.data || err.message);
     res.send(`
-      <h1 style="color:#ff00aa; text-align:center; margin-top:20vh; font-family:Orbitron;">
-        Token inválido ou expirado!
+      <h1 style="color:#ff00aa;text-align:center;margin-top:20vh;font-family:Orbitron;">
+        Token inválido ou expirado
       </h1>
-      <p style="text-align:center;"><a href="/getkey" style="color:#00d9ff;">Tentar novamente</a></p>
+      <p style="text-align:center;"><a href="/" style="color:#00d9ff;">Voltar e tentar novamente</a></p>
     `);
   }
 });
 
 // Rotas protegidas
-const auth = (req, res, next) => req.session.user ? next() : res.redirect('/');
-app.get('/dashboard', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
-app.get('/hits', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'hits.html')));
-app.get('/settings', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'settings.html')));
-app.get('/bypasser', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'bypasser.html')));
+const requireLogin = (req, res, next) => {
+  if (req.session.user) return next();
+  res.redirect('/');
+};
 
-// Logout
+app.get('/dashboard', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
+app.get('/hits', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'hits.html')));
+app.get('/settings', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'settings.html')));
+app.get('/bypasser', requireLogin, (req, res) => res.sendFile(path.join(__dirname, 'public', 'bypasser.html')));
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
 });
 
-app.listen(PORT, () => {
-  console.log(`Painel rodando → https://splunk-lp.onrender.com`);
-});
+app.listen(PORT, () => console.log(`Splunk LP rodando → https://splunk-lp.onrender.com`));
