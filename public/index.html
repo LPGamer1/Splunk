@@ -22,45 +22,43 @@
 <link rel="stylesheet" href="/assets/css/lib/audioplayer.css">
 <link rel="stylesheet" href="/assets/css/self.css">
 <link rel="stylesheet" href="/assets/css/style.css">
-
 <style>
   :root{--accent:#00ffff;--accent2:#ff00ff;--bg:#0a001a}
   body{background:var(--bg);color:#fff;overflow:hidden}
   #particles-js{position:fixed;inset:0;z-index:-1}
-  #loginOverlay{
+  #accessOverlay{
     position:fixed;inset:0;background:var(--bg);z-index:9999;
     display:flex;align-items:center;justify-content:center;
-    backdrop-filter:blur(10px);
+    backdrop-filter:blur(12px);
   }
-  #loginOverlay h1{
+  #accessOverlay h1{
     font-size:5rem;font-weight:900;
     background:linear-gradient(90deg,var(--accent),var(--accent2));
     -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   }
-  #loginOverlay button{
+  #accessOverlay button{
     background:linear-gradient(45deg,var(--accent),var(--accent2));
-    color:#000;padding:1.2rem 4rem;border:none;border-radius:50px;
-    font-size:1.8rem;font-weight:bold;cursor:pointer;
-    box-shadow:0 0 50px var(--accent);margin-top:2rem;
+    color:#000;padding:1.3rem 5rem;border:none;border-radius:50px;
+    font-size:1.9rem;font-weight:bold;cursor:pointer;
+    box-shadow:0 0 60px var(--accent);margin-top:2rem;transition:.3s;
   }
+  #accessOverlay button:hover{transform:scale(1.1)}
 </style>
 </head>
 <body>
 
 <div id="particles-js"></div>
 
-<!-- TELA DE LOGIN (some depois do primeiro acesso) -->
-<div id="loginOverlay">
+<!-- TELA INTELIGENTE -->
+<div id="accessOverlay">
   <div class="text-center">
     <h1>SPLUNK LP</h1>
-    <p style="color:var(--accent);font-size:2rem;margin:2rem 0">Acesso Exclusivo</p>
-    <button onclick="location.href='https://discord.com/oauth2/authorize?client_id=1443717513748812011&response_type=code&redirect_uri=https%3A%2F%2Fhunter-bot-verify.onrender.com%2Fkey&scope=identify%20guilds.join'">
-      VERIFICAR ACESSO
-    </button>
+    <p style="color:#00ffff;font-size:1.8rem;margin:2rem 0 3rem;">Acesso Exclusivo</p>
+    <button id="accessBtn">CARREGANDO...</button>
   </div>
 </div>
 
-<!-- SEU PAINEL ANTIGO COMPLETO (exatamente como você mandou na primeira mensagem) -->
+<!-- SEU PAINEL ORIGINAL (exatamente como você mandou na primeira mensagem) -->
 <aside class="sidebar">
   <button type="button" class="sidebar-close-btn"><iconify-icon icon="radix-icons:cross-2"></iconify-icon></button>
   <div class="sidebar-menu-area">
@@ -74,46 +72,46 @@
 </aside>
 
 <main class="dashboard-main">
-  <!-- AQUI VAI O CONTEÚDO DAS SUAS 4 PÁGINAS (dashboard, hits, settings, bypasser) -->
   <div id="pageContent">
-    <!-- Dashboard será carregado aqui por padrão -->
+    <!-- Dashboard será carregado aqui -->
   </div>
 </main>
 
-<!-- SUAS 4 PÁGINAS COMPLETAS (cole exatamente o conteúdo que você já tem) -->
+<!-- SUAS 4 PÁGINAS (cole exatamente o conteúdo que você mandou no início do chat) -->
 <script>
-// COLE AQUI DENTRO AS SUAS 4 PÁGINAS COMPLETAS (sem o <head> e <body>)
-
 const pages = {
-  dashboard: `
-    `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 1 (Dashboard) que você mandou no início do chat -->`,
-  hits:           `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 2 (Hits) -->`,
-  settings:           `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 3 (Settings) -->`,
-  bypasser:      `<!-- COLE AQUI TODO O CONTEÚDO DA PÁGINA 4 (Bypasser) -->`
+  dashboard: `<!-- COLE AQUI TODO O HTML DA SUA PÁGINA DASHBOARD (da <main> até </main>) -->`,
+  hits:      `<!-- COLE AQUI TODO O HTML DA PÁGINA HITS -->`,
+  settings:  `<!-- COLE AQUI TODO O HTML DA PÁGINA SETTINGS -->`,
+  bypasser:  `<!-- COLE AQUI TODO O HTML DA PÁGINA BYPASSER -->`
 };
 
-function showPage(page){
+function showPage(p){
   document.querySelectorAll('#sidebar-menu a').forEach(a=>a.classList.remove('active-page'));
   event.target.classList.add('active-page');
-  document.getElementById('pageContent').innerHTML = pages[page];
-  if(page==='dashboard') loadDashboardScripts(); // se precisar recarregar WebSocket etc.
+  document.getElementById('pageContent').innerHTML = pages[p];
 }
-
 showPage('dashboard');
 
-// Remove tela de login se já estiver logado
-if(document.cookie.includes('connect.sid')){
-  document.getElementById('loginOverlay').remove();
+// TELA INTELIGENTE — MUDA O BOTÃO AUTOMATICAMENTE
+if (document.cookie.includes('connect.sid')) {
+  document.getElementById('accessBtn').textContent = 'IR PARA O PAINEL';
+  document.getElementById('accessBtn').onclick = () => location.href = 'https://app.splunk.gg';
+  setTimeout(() => document.getElementById('accessOverlay').remove(), 800);
+} else {
+  document.getElementById('accessBtn').textContent = 'VERIFICAR ACESSO';
+  document.getElementById('accessBtn').onclick = () => {
+    location.href = 'https://discord.com/oauth2/authorize?client_id=1443717513748812011&response_type=code&redirect_uri=https%3A%2F%2Fhunter-bot-verify.onrender.com%2Fkey&scope=identify%20guilds.join';
+  };
 }
 </script>
 
-<!-- SEUS SCRIPTS ANTIGOS (particles, core.js, app.js, etc.) -->
+<!-- SEUS SCRIPTS ORIGINAIS -->
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
 <script src="/assets/js/core.js"></script>
 <script src="/assets/js/app.js"></script>
 <script src="/assets/js/particles.js"></script>
 <script src="/assets/js/overview-charts.js"></script>
-
 <script>
 particlesJS("particles-js", {"particles":{"number":{"value":90},"color":{"value":"#00ffff"},"line_linked":{"color":"#00ffff","opacity":0.3},"move":{"speed":2}},"interactivity":{"events":{"onhover":{"enable":true,"mode":"repulse"}}}});
 </script>
