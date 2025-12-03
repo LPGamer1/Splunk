@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPLUNK LP</title>
-  <!-- Seus links CSS originais (bootstrap, remixicon, etc.) -->
-  <link rel="stylesheet" href="/assets/css/lib/bootstrap.min.css">
+  <title>Splunk LP</title>
   <link rel="stylesheet" href="/assets/css/remixicon.css">
+  <link rel="stylesheet" href="/assets/css/lib/bootstrap.min.css">
   <link rel="stylesheet" href="/assets/css/style.css">
   <style>
-    :root{--accent:#00ffff;--accent2:#ff00ff}
-    body{background:#0a001a;color:#fff;overflow-x:hidden}
+    :root{--accent:#00ffff;--accent2:#ff00ff;--bg:#0d0b1f}
+    body{background:var(--bg);color:#fff;font-family:system-ui;overflow:hidden}
     #particles-js{position:fixed;inset:0;z-index:-1}
-    .sidebar{position:fixed;left:0;top:0;width:280px;height:100vh;background:#11101d;border-right:2px solid var(--accent);padding-top:2rem}
-    .logo{font-size:2rem;color:var(--accent);text-align:center;margin-bottom:2rem}
-    .nav-link.active,.nav-link:hover{background:rgba(0,255,255,0.1);color:var(--accent)}
-    .content{margin-left:280px;padding:2rem}
-    #loginOverlay{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(#1a0033,#000)}
-    #loginOverlay h1{font-size:4rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
-    #loginOverlay button{background:linear-gradient(45deg,var(--accent),var(--accent2));border:none;color:#000;padding:1rem 3rem;border-radius:50px;font-size:1.5rem;cursor:pointer}
+    .sidebar{position:fixed;left:0;top:0;width:280px;height:100%;background:#11101d;border-right:2px solid var(--accent);padding-top:2rem;z-index:10}
+    .logo{font-size:2.2rem;color:var(--accent);text-align:center;margin-bottom:3rem;text-shadow:0 0 20px var(--accent)}
+    .sidebar-menu a{color:#ccc;padding:14px 30px;display:flex;align-items:center;gap:12px;transition:.3s}
+    .sidebar-menu a:hover,.sidebar-menu a.active{background:rgba(0,255,255,0.15);color:var(--accent);border-left:4px solid var(--accent)}
+    .dashboard-main{margin-left:280px;padding:2rem;min-height:100vh}
+    .card{border:1px solid var(--accent);background:#11101d;box-shadow:0 0 20px rgba(0,255,255,0.3);border-radius:12px}
+    .glow-hover{box-shadow:0 0 30px rgba(0,255,255,0.4)!important;transition:.3s}
+    .glow-hover:hover{box-shadow:0 0 50px rgba(0,255,255,0.7)!important;transform:translateY(-5px)}
+    #loginOverlay{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+    #loginOverlay h1{font-size:4.5rem;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    #loginOverlay button{background:linear-gradient(45deg,var(--accent),var(--accent2));color:#000;padding:1rem 3rem;border:none;border-radius:50px;font-size:1.6rem;cursor:pointer;box-shadow:0 0 40px var(--accent)}
   </style>
 </head>
 <body>
@@ -26,11 +29,13 @@
 <div id="particles-js"></div>
 
 <!-- TELA DE LOGIN (some depois do primeiro acesso) -->
-<div id="loginOverlay">
+<div id="loginOverlay" style="display:flex">
   <div class="text-center">
     <h1>SPLUNK LP</h1>
-    <p style="color:#00ffff;margin:2rem 0">Acesso Exclusivo</p>
-    <button onclick="location.href='https://discord.com/oauth2/authorize?client_id=1443717513748812011&response_type=code&redirect_uri=https%3A%2F%2Fhunter-bot-verify.onrender.com%2Fkey&scope=identify%20guilds.join'">VERIFICAR ACESSO</button>
+    <p style="color:var(--accent);font-size:1.8rem;margin:2rem 0">Acesso Exclusivo</p>
+    <button onclick="location.href='https://discord.com/oauth2/authorize?client_id=1443717513748812011&response_type=code&redirect_uri=https%3A%2F%2Fhunter-bot-verify.onrender.com%2Fkey&scope=identify%20guilds.join'">
+      VERIFICAR ACESSO
+    </button>
   </div>
 </div>
 
@@ -38,41 +43,42 @@
 <aside class="sidebar">
   <div class="logo">SPLUNK LP</div>
   <ul class="sidebar-menu">
-    <li><a href="#" class="active" onclick="showPage('dashboard')">Dashboard</a></li>
-    <li><a href="#" onclick="showPage('hits')">Hits</a></li>
-    <li><a href="#" onclick="showPage('settings')">Settings</a></li>
-    <li><a href="#" onclick="showPage('bypasser')">Bypasser</a></li>
+    <li><a href="#" class="active" onclick="show('dashboard')">Dashboard</a></li>
+    <li><a href="#" onclick="show('hits')">Hits</a></li>
+    <li><a href="#" onclick="show('settings')">Settings</a></li>
+    <li><a href="#" onclick="show('bypasser')">Bypasser</a></li>
   </ul>
 </aside>
 
-<!-- CONTEÚDO PRINCIPAL -->
-<div class="content" id="main">
-  <!-- COLE AQUI TODO O HTML DA SUA PÁGINA DASHBOARD ANTIGA (a partir de <main class="dashboard-main">) -->
-  <!-- Depois faça o mesmo para as outras 3 páginas dentro do JS abaixo -->
-</div>
+<!-- CONTEÚDO (cole aqui exatamente o seu HTML antigo) -->
+<main class="dashboard-main" id="content">
+  <!-- COLE AQUI TODO O SEU HTML DA PÁGINA 1 (Dashboard) -->
+  <!-- depois faça o mesmo nas variáveis JS abaixo -->
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="/assets/js/core.js"></script>
+<script src="/assets/js/app.js"></script>
 <script>
-particlesJS("particles-js", {particles:{number:{value:80},color:{value:"#00ffff"},line_linked:{enable:true,color:"#00ffff",opacity:0.3},move:{speed:2}},interactivity:{events:{onhover:{enable:true,mode:"repulse"}}}});
+particlesJS("particles-js", {particles:{number:{value:90},color:{value:"#00ffff"},line_linked:{color:"#00ffff",opacity:0.3},move:{speed:2}},interactivity:{events:{onhover:{enable:true,mode:"repulse"}}}});
 
-// PÁGINAS (você só precisa colar seu HTML antigo aqui dentro)
+// PÁGINAS — cole exatamente o conteúdo das suas 4 páginas antigas aqui
 const pages = {
-  dashboard: `SEU HTML COMPLETO DA PÁGINA DASHBOARD AQUI`,
-  hits: `SEU HTML COMPLETO DA PÁGINA HITS AQUI`,
-  settings: `SEU HTML COMPLETO DA PÁGINA SETTINGS AQUI`,
-  bypasser: `SEU HTML COMPLETO DA PÁGINA BYPASSER AQUI`
+  dashboard: `<!-- COLE AQUI TODO O HTML DA SUA PÁGINA DASHBOARD ANTIGA (a partir de <main class="dashboard-main"> até </main>) -->`,
+  hits:      `<!-- COLE AQUI TODO O HTML DA PÁGINA HITS -->`,
+  settings:  `<!-- COLE AQUI TODO O HTML DA PÁGINA SETTINGS -->`,
+  bypasser:  `<!-- COLE AQUI TODO O HTML DA PÁGINA BYPASSER -->`
 };
 
-function showPage(p) {
+function show(page){
   document.querySelectorAll('.sidebar-menu a').forEach(a=>a.classList.remove('active'));
   event.target.classList.add('active');
-  document.getElementById('main').innerHTML = pages[p];
-  if(p==='dashboard') showPage('dashboard'); // carrega dashboard por padrão
+  document.getElementById('content').innerHTML = pages[page];
 }
 
-// Se já estiver logado → tira tela de login
-if(document.cookie.includes('connect.sid')) document.getElementById('loginOverlay').remove();
-showPage('dashboard');
+// Remove tela de login se já estiver logado
+if(document.cookie.includes('connect.sid')) document.getElementById('loginOverlay').style.display='none';
+show('dashboard');
 </script>
 </body>
 </html>
